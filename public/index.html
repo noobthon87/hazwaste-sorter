@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HazWaste Sorter | Aircraft Maintenance Hangar</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0ea5e9">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HazWaste Sorter">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Hangar Ops Banner -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title">HazWaste Sorter <span class="badge-hangar">Hangar 4 Base MRO</span></div>
+          <div class="brand-subtitle">Aircraft Maintenance Hazardous Waste Classification System</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="mobileShareBtn" class="btn btn-primary btn-sm" title="Share with Students / Open on Mobile Phone">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+          📱 Student Mobile QR
+        </button>
+        <button id="streamsGuideBtn" class="btn btn-secondary btn-sm" title="View Hangar Stream Definitions">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          Streams Guide
+        </button>
+        <button id="settingsBtn" class="btn btn-ghost btn-sm" title="API Settings">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Streams Color Bar -->
+  <div class="streams-ticker">
+    <div class="ticker-label">Hangar Waste Bins:</div>
+    <div class="ticker-bins">
+      <span class="bin-chip chip-yellow"><span class="dot"></span>Yellow: Contaminated Rags</span>
+      <span class="bin-chip chip-red"><span class="dot"></span>Red: Solvents & Thinners</span>
+      <span class="bin-chip chip-purple"><span class="dot"></span>Purple: Skydrol Hydraulics</span>
+      <span class="bin-chip chip-black"><span class="dot"></span>Black: Oils & Turbine Lubes</span>
+      <span class="bin-chip chip-orange"><span class="dot"></span>Orange: Sealants & Resins</span>
+      <span class="bin-chip chip-blue"><span class="dot"></span>Blue: Aerosol Cans</span>
+      <span class="bin-chip chip-white"><span class="dot"></span>White: Batteries & Avionics</span>
+      <span class="bin-chip chip-green"><span class="dot"></span>Green: Clean Scrap Metal</span>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <div class="dashboard-grid">
+      <!-- Left: Input / Upload Panel -->
+      <section class="card input-card">
+        <div class="card-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Waste Item Intake
+          </h2>
+          <span class="header-tag">Step 1</span>
+        </div>
+
+        <form id="classifyForm" class="classify-form">
+          <!-- Photo Upload Area -->
+          <div class="form-group">
+            <div class="label-row">
+              <label class="form-label">Photo Upload</label>
+              <span class="label-hint">(Snap with phone camera or upload)</span>
+            </div>
+
+            <!-- Mobile Quick Camera & Gallery Buttons -->
+            <div class="mobile-photo-actions">
+              <label for="cameraInput" class="btn btn-secondary btn-sm mobile-camera-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                📷 Take Photo with Camera
+              </label>
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" class="sr-only">
+
+              <label for="fileInput" class="btn btn-ghost btn-sm mobile-browse-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                📁 Choose File / Gallery
+              </label>
+              <input type="file" id="fileInput" accept="image/*" class="sr-only">
+            </div>
+
+            <div id="dropZone" class="drop-zone">
+              <div id="uploadPlaceholder" class="upload-placeholder">
+                <div class="upload-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                </div>
+                <div class="upload-prompt">
+                  <strong>Tap buttons above</strong> or drag and drop photo here
+                </div>
+                <div class="upload-subtext">Optimized for iPhone, iPad & Android mobile cameras</div>
+              </div>
+              
+              <!-- Image Preview Container -->
+              <div id="previewContainer" class="preview-container hidden">
+                <img id="imagePreview" src="" alt="Waste item preview" class="image-preview">
+                <div class="preview-overlay">
+                  <span id="previewFilename" class="preview-filename"></span>
+                  <button type="button" id="removePhotoBtn" class="btn btn-danger btn-xs">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description Input -->
+          <div class="form-group">
+            <label for="wasteDescription" class="form-label">
+              Item Description & Notes
+              <span class="label-hint">(Chemical name, part number, container condition)</span>
+            </label>
+            <textarea 
+              id="wasteDescription" 
+              class="form-control text-area" 
+              rows="3" 
+              placeholder="e.g. Shop rags soaked in MEK used during wing de-paint; or empty aerosol can of LPS 3..."
+            ></textarea>
+          </div>
+
+          <!-- Quick Hangar Presets -->
+          <div class="form-group">
+            <label class="form-label">Quick Test Presets <span class="label-hint">(Click to auto-populate)</span></label>
+            <div class="preset-chips">
+              <button type="button" class="preset-chip" data-text="Kimwipes soaked in MEK (Methyl Ethyl Ketone) solvent from degreasing flap tracks">MEK Solvent Rags</button>
+              <button type="button" class="preset-chip" data-text="Drained Skydrol LD-4 hydraulic fluid from aileron servo actuator">Skydrol LD-4 Fluid</button>
+              <button type="button" class="preset-chip" data-text="Empty spray can of LPS 3 premier rust inhibitor">LPS 3 Aerosol Can</button>
+              <button type="button" class="preset-chip" data-text="Expired tube of PRC Pro-Seal 890 B-2 fuel tank sealant">Pro-Seal 890 Tube</button>
+              <button type="button" class="preset-chip" data-text="Used Mobil Jet Oil II turbine oil and saturated filter element">Mobil Jet Oil & Filter</button>
+              <button type="button" class="preset-chip" data-text="Decommissioned 24V Nickel-Cadmium aircraft emergency battery">Ni-Cad Aircraft Battery</button>
+              <button type="button" class="preset-chip" data-text="Clipped stainless steel safety lockwire (MS20995C32) and sheared rivets">Clean Lockwire Clippings</button>
+              <button type="button" class="preset-chip chip-warning" data-text="Unknown cloudy yellowish liquid with strong odor in an unlabeled plastic cup found near engine stand">⚠️ Mystery Unlabeled Liquid</button>
+              <button type="button" class="preset-chip chip-warning" data-text="Sticky brown residue scraped off hangar floor near bay 3 with no markings">⚠️ Unidentified Residue</button>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="form-actions">
+            <button type="submit" id="classifyBtn" class="btn btn-primary btn-block">
+              <span class="btn-text">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                Classify Waste Item
+              </span>
+              <span class="spinner hidden"></span>
+            </button>
+            <button type="button" id="resetBtn" class="btn btn-ghost btn-sm">Clear Form</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Right: Classification Result Card -->
+      <section class="card result-card" id="resultCardContainer">
+        <div class="card-header">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Classification Result
+          </h2>
+          <span id="resultTimestamp" class="header-tag">Awaiting Intake</span>
+        </div>
+
+        <!-- Initial Blank State -->
+        <div id="resultEmptyState" class="result-empty-state">
+          <div class="empty-icon">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          </div>
+          <h3>No Waste Item Classified Yet</h3>
+          <p>Upload a photo or enter a description on the left, then click <strong>Classify Waste Item</strong>.</p>
+          <div class="rule-reminder-box">
+            <div class="rule-title">⚡ Hangar Rule Active:</div>
+            <div class="rule-desc">If classification confidence is <strong>below 0.70</strong>, the item will immediately be routed to <strong>'Refer to supervisor'</strong> instead of guessing.</div>
+          </div>
+        </div>
+
+        <!-- Populated Result Content -->
+        <div id="resultContent" class="result-content hidden">
+          <!-- Alert Banner (Normal Stream vs Supervisor Referral) -->
+          <div id="resultBanner" class="result-banner banner-success">
+            <div class="banner-icon" id="bannerIcon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+            </div>
+            <div class="banner-text">
+              <div id="bannerTitle" class="banner-title">Stream Match Confirmed</div>
+              <div id="bannerSubtitle" class="banner-subtitle">Confidence exceeds 0.70 threshold</div>
+            </div>
+          </div>
+
+          <!-- Primary Stream & Bin Colour Section -->
+          <div class="result-details-grid">
+            <!-- Category Stream Card -->
+            <div class="detail-box stream-box">
+              <span class="detail-label">Assigned Waste Stream</span>
+              <div id="resultCategory" class="detail-value text-category">Contaminated Rags & Absorbents</div>
+            </div>
+
+            <!-- Bin Colour Card -->
+            <div class="detail-box bin-box">
+              <span class="detail-label">Designated Hangar Bin</span>
+              <div class="bin-display">
+                <span id="binColourIndicator" class="bin-swatch swatch-yellow"></span>
+                <span id="resultBinColour" class="bin-name">Yellow</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confidence Score Gauge -->
+          <div class="confidence-container">
+            <div class="confidence-header">
+              <span class="confidence-title">Classification Confidence</span>
+              <span id="confidencePercentage" class="confidence-val">94%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div id="confidenceBar" class="progress-bar-fill fill-green" style="width: 94%;"></div>
+            </div>
+            <div class="confidence-threshold-marker">
+              <span>0.00</span>
+              <span class="threshold-label">▲ 0.70 Required Threshold</span>
+              <span>1.00</span>
+            </div>
+          </div>
+
+          <!-- Safety Reminder Box -->
+          <div class="safety-box" id="safetyBox">
+            <div class="safety-header">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>One-Line Safety Reminder</span>
+            </div>
+            <div id="resultSafetyReminder" class="safety-text">
+              Dispose in self-closing, foot-operated fire-safe cans to prevent spontaneous combustion.
+            </div>
+          </div>
+
+          <!-- Supervisor Action Box (Visible ONLY when confidence < 0.7) -->
+          <div id="supervisorActionBox" class="supervisor-box hidden">
+            <div class="supervisor-title">🚨 Mandatory Hangar Quarantine Protocol</div>
+            <ul class="supervisor-steps">
+              <li><strong>Do not</strong> discard into standard hangar waste bins.</li>
+              <li>Affix a red/yellow <em>HazMat Inspection Hold</em> tag to the container.</li>
+              <li>Transfer item to <strong>Hangar Bay 4 HazMat Quarantine Cage</strong>.</li>
+              <li>Notify Shift EHS Supervisor (Internal Ext: <strong>4102 / Radio Ch 4</strong>).</li>
+            </ul>
+          </div>
+
+          <!-- JSON Output Viewer (Requirement: Return JSON with category, bin colour, confidence, safety reminder) -->
+          <div class="json-inspector">
+            <div class="json-header">
+              <span class="json-title">Returned JSON Payload</span>
+              <button type="button" id="copyJsonBtn" class="btn btn-ghost btn-xs">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy JSON
+              </button>
+            </div>
+            <pre class="json-pre"><code id="jsonCodeView">{ ... }</code></pre>
+          </div>
+
+          <!-- Action CTA -->
+          <div class="result-actions">
+            <button type="button" id="logItemBtn" class="btn btn-success btn-block">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Log Disposal to Hangar Table
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Full-Width Hangar Sorting Log Table -->
+    <section class="card log-section">
+      <div class="card-header log-header">
+        <div class="log-title-group">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            Hangar Waste Sorting Log Table
+          </h2>
+          <span class="log-count" id="logCountBadge">0 Entries</span>
+        </div>
+        <div class="log-controls">
+          <div class="filter-group">
+            <label for="filterStatus" class="sr-only">Filter</label>
+            <select id="filterStatus" class="form-select form-select-sm">
+              <option value="all">All Logs</option>
+              <option value="sorted">Sorted (≥ 0.70)</option>
+              <option value="supervisor">Referred to Supervisor (< 0.70)</option>
+            </select>
+          </div>
+          <button id="exportCsvBtn" class="btn btn-secondary btn-sm" title="Export Log to CSV for EHS Records">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export CSV
+          </button>
+          <button id="clearLogBtn" class="btn btn-danger btn-sm" title="Clear All Log Entries">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table hangar-table" id="logTable">
+          <thead>
+            <tr>
+              <th style="width: 100px;">Time</th>
+              <th style="width: 80px;">Media</th>
+              <th>Waste Item / Description</th>
+              <th style="width: 220px;">Category</th>
+              <th style="width: 110px;">Bin Colour</th>
+              <th style="width: 110px;">Confidence</th>
+              <th>Safety Reminder</th>
+              <th style="width: 130px;">Action / Status</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+      <div id="emptyTableMessage" class="empty-table-msg hidden">
+        No log entries found matching current filter.
+      </div>
+    </section>
+  </main>
+
+  <!-- Streams Reference Modal -->
+  <div id="streamsModal" class="modal-backdrop hidden">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3>Aircraft Maintenance Hangar Waste Streams Reference</h3>
+        <button id="closeStreamsModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">Hangar 4 standard waste streams, designated bin colours, and handling reminders per OSHA / FAA / EPA Part 261 standards:</p>
+        <div class="stream-reference-cards" id="streamsRefContainer">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (Gemini API Key option) -->
+  <div id="settingsModal" class="modal-backdrop hidden">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <h3>Configuration & AI Settings</h3>
+        <button id="closeSettingsModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="apiKeyInput" class="form-label">
+            Gemini Vision API Key <span class="label-hint">(Optional)</span>
+          </label>
+          <input type="password" id="apiKeyInput" class="form-control" placeholder="AIzaSy...">
+          <small class="form-help">
+            If provided, multimodal Gemini 2.5 Flash analyzes uploaded photos directly. If omitted, the high-performance built-in Hangar Aviation Expert engine classifies waste instantly offline.
+          </small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Classification Engine Status</label>
+          <div class="engine-status-box">
+            <span class="status-indicator active"></span>
+            <span id="engineStatusText">Aviation Expert Heuristics Engine (Offline Active)</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="saveSettingsBtn" class="btn btn-primary">Save Settings</button>
+          <button id="closeSettingsBtn" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile QR Code Modal for Student Access -->
+  <div id="mobileModal" class="modal-backdrop hidden">
+    <div class="modal-container modal-sm">
+      <div class="modal-header">
+        <h3>📱 Student Mobile Access</h3>
+        <button id="closeMobileModalBtn" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body text-center">
+        <p class="modal-intro">
+          Students can point their iPhone or Android camera at this QR code to open HazWaste Sorter instantly:
+        </p>
+
+        <!-- QR Code Container -->
+        <div class="qr-container">
+          <img id="qrCodeImage" src="" alt="Mobile QR Code" class="qr-image">
+          <div id="qrLoading" class="qr-loading">Generating QR Code...</div>
+        </div>
+
+        <!-- URL Box with Copy button -->
+        <div class="mobile-url-box">
+          <span id="mobileUrlDisplay" class="mobile-url-text">Loading URL...</span>
+          <button id="copyMobileUrlBtn" class="btn btn-secondary btn-xs">Copy Link</button>
+        </div>
+
+        <!-- Mobile Installation Instructions -->
+        <div class="pwa-instructions">
+          <div class="pwa-instruct-title">💡 How to install as an App on Phone:</div>
+          <div class="pwa-instruct-grid">
+            <div class="pwa-device-box">
+              <strong>iOS (iPhone/iPad):</strong>
+              <ol>
+                <li>Open in Safari</li>
+                <li>Tap <strong>Share</strong> button</li>
+                <li>Tap <strong>Add to Home Screen</strong></li>
+              </ol>
+            </div>
+            <div class="pwa-device-box">
+              <strong>Android:</strong>
+              <ol>
+                <li>Open in Chrome</li>
+                <li>Tap <strong>⋮</strong> menu</li>
+                <li>Tap <strong>Add to Home Screen</strong> or <strong>Install</strong></li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <span>HazWaste Sorter v1.0 • Hangar 4 Maintenance EHS Compliance System</span>
+      <span>Enforcing <strong>&lt; 0.70 Confidence "Refer to supervisor"</strong> Rule</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+  <script>
+    // Register Service Worker for offline PWA support
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+          .catch(err => console.log('Service Worker registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
