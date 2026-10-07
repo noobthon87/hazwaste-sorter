@@ -29,6 +29,7 @@ ENV/
 # Environment secrets
 .env
 .env.*
+!.env.example
 secrets.json
 
 # IDE
@@ -40,3 +41,11 @@ secrets.json
 # OS
 .DS_Store
 Thumbs.db
+
+# SQLite database & Uploads
+*.db
+*.sqlite3
+uploads/*
+!uploads/.gitkeep
+static/uploads/
+

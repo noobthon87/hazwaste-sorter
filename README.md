@@ -1,116 +1,88 @@
-# ✈️ HazWaste Sorter
+# ✈️ HazWaste Sorter (Singapore Hangar Prototype)
 
-**HazWaste Sorter** is a specialized web application engineered for aircraft maintenance hangars (line & base MRO facilities). It enables hangar technicians to upload a photo or type a description of a maintenance waste item, automatically classifying it into the hangar's designated hazardous and industrial waste streams.
-
----
-
-## 📋 Hangar Waste Streams & Designated Bin Colours
-
-| Waste Stream | Bin Colour | Examples & Chemical Notes | One-Line Safety Reminder |
-| :--- | :---: | :--- | :--- |
-| **Contaminated Rags & Absorbents** | **Yellow** | Kimwipes with MEK, solvent wipes, oily shop towels, PPE, contaminated nitrile gloves | *Dispose in self-closing, foot-operated fire-safe cans to prevent spontaneous combustion.* |
-| **Flammable Solvents & Thinners** | **Red** | MEK, Acetone, MPK, Isopropyl Alcohol (IPA), paint thinners, degreasers, toluene | *Keep sealed in grounded FM-approved containers away from ignition sources; vapors are volatile.* |
-| **Aviation Hydraulic Fluids (Skydrol)** | **Purple** | Skydrol LD-4, Skydrol 500B-4, Exxon HyJet IV/V, hydraulic filter elements | *Severe eye and skin irritant; wear butyl rubber gloves and full face shield.* |
-| **Aviation Oils & Turbine Lubricants** | **Black** | Mobil Jet Oil II, Royco turbine oils, grease tubes, drained Jet-A fuel sumps | *Do not mix with chlorinated solvents or Skydrol; store in sealed waste oil drum.* |
-| **Sealants, Adhesives & Resins** | **Orange** | PRC Pro-Seal 890 / 870, polysulfide, epoxy resin (EA 9394), uncured sealant tubes | *Contains toxic isocyanates/curing agents; ensure waste cures in ventilated zone before disposal.* |
-| **Aerosol Cans & Pressurized Sprays** | **Blue** | LPS 1/2/3, contact cleaner, NDT penetrant spray cans, primer sprays | *Do not puncture manually; place intact in aerosol drum or depressurize via filtered puncturing unit.* |
-| **Universal Waste (Batteries & Electronics)** | **White** | Aircraft Ni-Cad batteries, lead-acid batteries, ELTs, avionics boxes, fluorescent tubes | *Tape terminals to prevent short circuit and thermal runaway; electrolyte is highly corrosive.* |
-| **Scrap Metal & Clean Hardware** | **Green** | Clipped MS20995 safety lockwire, sheared rivets, AN bolts, clean aluminum scrap | *Verify zero chemical or hydrocarbon contamination before placing in metal recycling.* |
+An AI-assisted hazardous waste sorting prototype designed for aircraft maintenance training hangars in Singapore.
 
 ---
 
-## 🛡️ Critical Safety Rule: `< 0.70` Supervisor Routing
+## 📋 Features
 
-In aviation maintenance, incorrect waste segregation creates severe chemical reaction, fire, and regulatory compliance hazards. 
+- **Mobile-First Design**: Optimized for smartphone browsers with large, glove-friendly touch targets.
+- **Direct Rear Camera Trigger**: Uses `<input type="file" accept="image/*" capture="environment">` to open the rear camera directly.
+- **Singapore Hangar 4-Bin Standard**:
+  - 🔴 **Red Bin**: Flammable & Solvents (e.g., fuel/MEK rags, absorbents)
+  - 🟡 **Yellow Bin**: Chemical & Hazardous Contaminants (e.g., Skydrol rags, sealant tubes, batteries)
+  - 🔵 **Blue Bin**: General Recyclables & Metal Scrap (e.g., clean cardboard, wire clippings)
+  - ⚫ **Black Bin**: General Waste (e.g., workshop trash)
+- **Live Gemini Classification**: Multimodal visual identification using Google's `google-genai` SDK.
+- **Python Safety Rule Enforcement**:
+  1. Confidence $< 0.70$ automatically sets `status = "REFER TO SUPERVISOR"`.
+  2. Waste streams not in the official whitelist set `status = "REFER TO SUPERVISOR"`.
+  3. Privacy filter: if a person's face, name tag, or staff ID card is detected, the photo is deleted immediately and not saved.
+  4. Robust error handling ensures the app never crashes.
+- **Supervisor Review Queue & PIN Protection**:
+  - 4-digit PIN protection (`SUPERVISOR_PIN`, default `1234`).
+  - Lists items needing decision, newest first, with photo, description, AI suggestion, reason, and confidence.
+  - Dropdown to assign final stream; records `decided_by = "Supervisor"`, timestamp, and whether supervisor `AGREED` or `DISAGREED` with AI.
+- **"Wrong? Report it" Dispute Action**: Confidently classified items can be disputed by technicians, immediately sending them to the review queue.
+- **Auditing & Logging**: Stored in a lightweight SQLite database (`hazwaste.db`) using Python's built-in `sqlite3` module.
+- **Safety Governance & Compliance Features**:
+  1. **Immutable Audit Trail (`audit_log`)**: Every modification (technician dispute, supervisor resolution, stream correction, data retention purge) is recorded with `item_id`, `field`, `old_value`, `new_value`, `changed_by`, and `timestamp`. Items can never be deleted from the database—only corrected.
+  2. **"About this AI & Safety Governance" Page (`/about`)**: Accessible from the persistent footer on every screen, explaining in plain English what the app does/does not do, supervisor authority, the 0.70 confidence threshold rationale, privacy/PDPA rules, operational limitations, and data retention.
+  3. **Automated 30-Day Photo Deletion Policy**: Uploaded photos older than 30 days are automatically unlinked and permanently deleted from disk on startup/maintenance, while preserving the full anonymized text audit log in SQLite.
 
-> **Mandatory Rule**: If classification confidence is **below 0.70**, the system will **never guess**. It returns `'Refer to supervisor'` and marks the item for **Quarantine Hold (Yellow-Black Stripe)**.
+---
 
-### JSON Response Schema
+## 🚀 Quick Start Guide
 
-#### When Confidence &ge; 0.70 (Confirmed Stream Match)
-```json
-{
-  "category": "Contaminated Rags & Absorbents",
-  "bin_colour": "Yellow",
-  "confidence": 0.94,
-  "safety_reminder": "Dispose in self-closing, foot-operated fire-safe cans to prevent spontaneous combustion."
-}
+### 1. Configure Your `.env` File
+Open `.env` in the project folder:
+```env
+GEMINI_API_KEY=your_actual_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+SUPERVISOR_PIN=1234
 ```
 
-#### When Confidence &lt; 0.70 (Supervisor Referral Triggered)
-```json
-{
-  "category": "Refer to supervisor",
-  "bin_colour": "Quarantine / Yellow-Black Stripe",
-  "confidence": 0.20,
-  "safety_reminder": "Uncertain waste identification. Do not dispose in regular bins; isolate in HazMat Quarantine and alert Shift Supervisor or EHS."
-}
+### 2. Activate the Virtual Environment
+Open PowerShell inside the project directory:
+```powershell
+cd C:\Users\ajmea\.gemini\antigravity\scratch\hazwaste-sorter
+.\venv\Scripts\Activate.ps1
 ```
+
+### 3. Run the App
+```powershell
+python app.py
+```
+The app will start at `http://127.0.0.1:5000`.
 
 ---
 
-## 🚀 How to Run the Web App
+## 📱 How to Open on Your Mobile Phone
 
-### Option 1: Full-Stack Web Server (Recommended)
-From the project folder:
-```bash
-python run.py
-```
-Or with `server.py`:
-```bash
-python server.py
-```
-Open your browser at **`http://localhost:8000`**.
-
-### Option 2: Direct Browser Execution (Zero Dependencies)
-You can directly open `public/index.html` in Chrome, Edge, or Firefox. The built-in client-side aviation engine will perform instant classification without requiring any server.
-
----
-
-## 🛠️ Key Interface Features
-
-1. **Intake Panel (Step 1)**:
-   - **Upload Button & Drag-and-Drop Zone**: Upload or drag any waste photo (JPEG, PNG, WebP) with live preview and removal.
-   - **Description Textarea**: Input chemical names, part numbers, or inspection notes.
-   - **Quick Test Presets**: One-click chips for rapid testing (including both high-confidence standard hangar items and low-confidence mystery items).
-2. **Classification Result Card (Step 2)**:
-   - **Stream Match vs. Supervisor Alert Banner**: Color-coded status.
-   - **Visual Bin Color Swatch**: Big color badge indicating the physical bin colour.
-   - **Confidence Meter**: Visual bar calibrated against the 0.70 threshold.
-   - **One-Line Safety Reminder**: Direct safety handling instructions.
-   - **Returned JSON Inspector**: Live formatted JSON view with one-click **Copy JSON** button.
-   - **Log Disposal CTA**: Appends the item directly to the table below.
-3. **Hangar Sorting Log Table**:
-   - Stores all sorted items with timestamps, thumbnails, descriptions, stream, bin colour, confidence score, and status.
-   - Filter by All, Sorted, or Referred to Supervisor.
-   - **Export CSV** button: Instant download for EHS and OSHA/FAA audit compliance.
-   - Persistent `localStorage` caching across sessions.
+1. Connect your phone to the **same Wi-Fi network**.
+2. Find your laptop's local IPv4 address (e.g., via `ipconfig` in PowerShell).
+3. Open your mobile browser and go to:
+   ```text
+   http://<YOUR_LOCAL_IP>:5000
+   ```
+4. **Screens & Flows:**
+   - **Scan**: Snap a photo of a waste item, add an optional description, tap **Classify**.
+   - **Review**: Tap **Review** in bottom nav &rarr; Enter 4-digit PIN (`1234`) &rarr; Assign stream from dropdown &rarr; Tap **Confirm**.
+   - **Log**: View summary tiles, CSS horizontal bar chart, 50 most recent items table, and tap **Export CSV** to download records.
+   - **About / Governance**: Tap **ℹ️ About this AI & Safety Governance** in the footer of any screen.
+   - **Demo Data**: Populate 30 realistic hangar sample records anytime by running:
+     ```powershell
+     python seed_demo.py
+     ```
 
 ---
 
-## 📱 Deploying for Students on Mobile Phones
+## 🧪 Run Automated Tests
 
-### Method 1: Instant Classroom Wi-Fi (No Setup, Works Right Now)
-When your computer and students' phones are connected to the same Wi-Fi or classroom network:
-1. Run `python server.py`.
-2. Open `http://localhost:8000` on your desktop and click the **📱 Student Mobile QR** button in the header.
-3. Show/project the QR code on screen. Students open their phone camera, scan the QR code, and immediately access the app (e.g. `http://<your-lan-ip>:8000`).
-
-### Method 2: 100% Free Public Web Hosting (GitHub Pages / Netlify / Vercel)
-The `public/` directory is an independent Progressive Web App (PWA) with full camera capture, offline caching, and instant classification:
-- **Netlify Drop (Easiest, 30 seconds)**:
-  1. Open [app.netlify.com/drop](https://app.netlify.com/drop).
-  2. Drag and drop the `public` folder onto the browser window.
-  3. Netlify generates an instant public `https://....netlify.app` URL with free SSL!
-- **GitHub Pages**:
-  1. Push the repo to GitHub.
-  2. In your repo settings, go to **Pages** and set the source to deploy `/public` folder or the main branch.
-  3. Free URL: `https://<your-username>.github.io/hazwaste-sorter/`.
-
-### Method 3: Container Cloud Deployment (Render.com / Google Cloud Run)
-- Deploy the Python API and web interface to [Render.com](https://render.com) using the included `Dockerfile` and `render.yaml`.
-
-### 📲 Mobile App Installation (PWA):
-- **iPhone / iPad (iOS)**: Open link in Safari &rarr; tap **Share** button &rarr; tap **"Add to Home Screen"**.
-- **Android**: Open link in Chrome &rarr; tap **⋮** (three dots) &rarr; tap **"Add to Home Screen"** or **"Install App"**.
-
+To verify all features, rules, review workflow, analytics, and governance:
+```powershell
+python test_rules.py
+python test_review.py
+python test_log_screen.py
+python test_governance.py
+```

@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Hangar Waste Log & Analytics - HazWaste Sorter{% endblock %}
+
+{% block content %}
+
+<!-- Header & Export Action -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+  <div>
+    <h2 style="margin-bottom: 2px;">Waste Audit Log</h2>
+    <p style="font-size: 0.82rem; color: #64748b;">Hangar disposal analytics & historical sorting records</p>
+  </div>
+
+  <!-- Requirement 4: "Export CSV" button that downloads all records -->
+  <a href="{{ url_for('export_csv') }}" class="btn-export">
+    <span>📥 Export CSV</span>
+  </a>
+</div>
+
+<!-- ============================================== -->
+<!-- 1. SUMMARY TILES AT THE TOP                   -->
+<!-- ============================================== -->
+<div class="summary-tiles-grid">
+  <!-- Tile 1: Total Items -->
+  <div class="tile-card">
+    <div class="tile-value">{{ stats.total_items }}</div>
+    <div class="tile-label">Total Items</div>
+  </div>
+
+  <!-- Tile 2: % Sent to Supervisor -->
+  <div class="tile-card">
+    <div class="tile-value" style="color: {% if stats.sent_to_supervisor_pct > 30 %}#ea580c{% else %}#0f172a{% endif %};">
+      {{ stats.sent_to_supervisor_pct }}%
+    </div>
+    <div class="tile-label">Sent to Supervisor</div>
+  </div>
+
+  <!-- Tile 3: % AI Suggestions Accepted -->
+  <div class="tile-card">
+    <div class="tile-value" style="color: #16a34a;">
+      {{ stats.ai_accepted_pct }}%
+    </div>
+    <div class="tile-label">AI Accepted</div>
+  </div>
+
+  <!-- Tile 4: Items This Week -->
+  <div class="tile-card">
+    <div class="tile-value" style="color: #0284c7;">
+      {{ stats.items_this_week }}
+    </div>
+    <div class="tile-label">Items This Week</div>
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- 2. HORIZONTAL BAR CHART (CSS ONLY, NO JS LIBS) -->
+<!-- ============================================== -->
+<div class="card">
+  <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 2px;">Waste Stream Distribution</h3>
+  <p style="font-size: 0.78rem; color: #64748b;">Item volume per hangar waste category</p>
+
+  <div class="chart-container">
+    {% for sc in stream_counts %}
+      <div class="chart-row">
+        <div class="chart-label-row">
+          <span class="chart-stream-name">
+            {% if sc.bin_colour | lower == 'red' %}🔴
+            {% elif sc.bin_colour | lower == 'yellow' %}🟡
+            {% elif sc.bin_colour | lower == 'blue' %}🔵
+            {% else %}⚫{% endif %}
+            <span>{{ sc.stream_name }}</span>
+          </span>
+          <span class="chart-count">
+            {{ sc.count }} item{% if sc.count != 1 %}s{% endif %} ({{ sc.total_pct }}%)
+          </span>
+        </div>
+
+        <!-- CSS Bar Track and Bar Fill -->
+        <div class="chart-track">
+          <div 
+            class="chart-fill fill-{{ sc.bin_colour | lower }}" 
+            style="width: {{ sc.bar_pct }}%;"
+          ></div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- ============================================== -->
+<!-- 3. TABLE OF 50 MOST RECENT ITEMS               -->
+<!-- ============================================== -->
+<div class="card" style="padding: 16px 12px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <div>
+      <h3 style="font-size: 1rem; font-weight: 700;">Recent Waste Items</h3>
+      <p style="font-size: 0.78rem; color: #64748b;">Showing up to 50 most recent records</p>
+    </div>
+    <span style="font-size: 0.72rem; color: #64748b; font-weight: 600;">
+      {{ records | length }} items
+    </span>
+  </div>
+
+  {% if records %}
+    <div class="table-wrapper">
+      <table class="log-table">
+        <thead>
+          <tr>
+            <th>Date / Time</th>
+            <th>Waste Stream</th>
+            <th>Confidence</th>
+            <th>Status</th>
+            <th>Decided By</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in records %}
+            <tr>
+              <!-- Date / Time & Demo Badge -->
+              <td>
+                <div style="font-weight: 600; white-space: nowrap;">
+                  {{ r.timestamp[:16] }}
+                  <!-- Requirement 5: Demo data label -->
+                  {% if r.is_demo %}
+                    <span class="badge-demo">Demo data</span>
+                  {% endif %}
+                </div>
+                {% if r.description %}
+                  <div style="font-size: 0.72rem; color: #64748b; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px;">
+                    {{ r.description }}
+                  </div>
+                {% endif %}
+              </td>
+
+              <!-- Stream & Bin Indicator -->
+              <td>
+                <div style="display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                  {% if r.bin_colour | lower == 'red' %}🔴
+                  {% elif r.bin_colour | lower == 'yellow' %}🟡
+                  {% elif r.bin_colour | lower == 'blue' %}🔵
+                  {% else %}⚫{% endif %}
+                  <span>{{ r.waste_stream }}</span>
+                </div>
+                {% if r.agreement in ['AGREED', 'DISAGREED'] %}
+                  <div style="font-size: 0.7rem; color: {% if r.agreement == 'AGREED' %}#15803d{% else %}#ea580c{% endif %}; font-weight: 700; margin-top: 2px;">
+                    {% if r.agreement == 'AGREED' %}🤝 Supervisor Agreed{% else %}🔄 Supervisor Overruled AI{% endif %}
+                  </div>
+                {% endif %}
+              </td>
+
+              <!-- Confidence -->
+              <td>
+                <span class="confidence-badge {% if r.confidence >= 0.85 %}badge-green{% elif r.confidence >= 0.70 %}badge-amber{% else %}badge-red{% endif %}" style="font-size: 0.72rem; padding: 2px 6px;">
+                  {{ (r.confidence * 100) | round }}%
+                </span>
+              </td>
+
+              <!-- Status -->
+              <td>
+                {% if r.status == 'REFER TO SUPERVISOR' %}
+                  <span style="font-size: 0.7rem; font-weight: 700; color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">
+                    ⚠️ REFER
+                  </span>
+                {% elif r.status == 'SUPERVISOR_RESOLVED' %}
+                  <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">
+                    ✓ RESOLVED
+                  </span>
+                {% else %}
+                  <span style="font-size: 0.7rem; font-weight: 700; color: #16a34a; background: #dcfce7; padding: 2px 6px; border-radius: 4px; white-space: nowrap;">
+                    ✓ ADVISED
+                  </span>
+                {% endif %}
+              </td>
+
+              <!-- Decided By -->
+              <td style="white-space: nowrap;">
+                <span style="font-weight: 600; font-size: 0.78rem;">
+                  {{ r.decided_by or 'Pending' }}
+                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 30px 10px; color: #64748b;">
+      <p style="font-size: 1rem; margin-bottom: 8px;">No waste records logged yet.</p>
+      <p style="font-size: 0.8rem; margin-bottom: 16px;">Run <code>python seed_demo.py</code> to load 30 realistic demo records.</p>
+      <a href="{{ url_for('scan_screen') }}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 10px 20px;">
+        Start First Scan
+      </a>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Scan Waste - HazWaste Sorter{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Scan Waste Item</h2>
+  <p class="subtext">Capture an aircraft maintenance waste item for sorting advice.</p>
+
+  <form action="{{ url_for('classify_waste') }}" method="POST" enctype="multipart/form-data" id="waste-form">
+    
+    <!-- Dual Choice: Take Photo via Camera OR Upload from Gallery/Files -->
+    <div class="photo-btn-group">
+      <label for="camera-input" class="btn btn-camera">
+        <span>📷 Take Photo (Camera)</span>
+      </label>
+      
+      <div class="or-divider">
+        <span>or</span>
+      </div>
+
+      <label for="upload-input" class="btn btn-upload">
+        <span>📁 Upload from Gallery / Files</span>
+      </label>
+    </div>
+
+    <!-- Rear Camera Direct Trigger -->
+    <input 
+      type="file" 
+      id="camera-input" 
+      name="photo" 
+      accept="image/*" 
+      capture="environment" 
+      onchange="handlePhotoSelect(this, 'camera')"
+    >
+
+    <!-- Photo Library / Gallery File Upload Trigger -->
+    <input 
+      type="file" 
+      id="upload-input" 
+      name="upload_photo" 
+      accept="image/*" 
+      onchange="handlePhotoSelect(this, 'upload')"
+    >
+
+    <!-- Photo Preview Area -->
+    <div id="preview-area" class="preview-box">
+      <span id="preview-badge" class="preview-badge">📷 Ready</span>
+      <div class="preview-label">Selected Image Preview</div>
+      <img id="preview-img" src="#" alt="Waste preview">
+    </div>
+
+    <!-- Optional description input -->
+    <div class="form-group">
+      <label for="description">Short description (optional):</label>
+      <input 
+        type="text" 
+        id="description" 
+        name="description" 
+        placeholder="e.g. Fuel-soaked rag, sealant tube, battery"
+      >
+    </div>
+
+    <!-- Classify button -->
+    <button type="submit" id="classify-btn" class="btn btn-primary" disabled>
+      <span>⚡ Classify Waste</span>
+    </button>
+  </form>
+</div>
+
+<!-- Singapore Hangar Reference Guide -->
+<div class="card" style="font-size: 0.85rem;">
+  <strong style="display: block; margin-bottom: 6px;">Singapore Hangar Bin Colours:</strong>
+  <ul style="padding-left: 20px; color: #475569; line-height: 1.6;">
+    <li><strong style="color: #dc2626;">Red:</strong> Flammable / Solvents (Fuel, MEK rags)</li>
+    <li><strong style="color: #ca8a04;">Yellow:</strong> Chemical Contaminants (Skydrol, Sealants)</li>
+    <li><strong style="color: #2563eb;">Blue:</strong> General Recyclables (Clean cardboard/paper)</li>
+    <li><strong style="color: #1e293b;">Black:</strong> General Waste (Workshop trash)</li>
+  </ul>
+</div>
+
+<script>
+  function handlePhotoSelect(input, source) {
+    if (input.files && input.files[0]) {
+      // Clear the other input so only the active photo is submitted
+      if (source === 'camera') {
+        const uploadInput = document.getElementById('upload-input');
+        if (uploadInput) uploadInput.value = '';
+        document.getElementById('preview-badge').innerText = '📷 Captured via Camera';
+      } else {
+        const cameraInput = document.getElementById('camera-input');
+        if (cameraInput) cameraInput.value = '';
+        document.getElementById('preview-badge').innerText = '📁 Selected from Files / Gallery';
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('preview-img').src = e.target.result;
+        document.getElementById('preview-area').style.display = 'block';
+        
+        // Enable the classify button
+        const classifyBtn = document.getElementById('classify-btn');
+        classifyBtn.disabled = false;
+        
+        // Scroll smoothly to preview
+        document.getElementById('preview-area').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // Loading state on submission
+  document.getElementById('waste-form').addEventListener('submit', function() {
+    const btn = document.getElementById('classify-btn');
+    btn.innerHTML = '<span>⏳ Processing & Resizing...</span>';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

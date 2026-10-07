@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Classification Result - HazWaste Sorter{% endblock %}
+
+{% block content %}
+<div class="card">
+  <h2>Classification Result</h2>
+  
+  <!-- Status Indicator -->
+  {% if record['status'] == 'REFER TO SUPERVISOR' %}
+    <div class="supervisor-alert-banner">
+      <div class="supervisor-alert-title">
+        <span>⚠️ REFER TO SUPERVISOR</span>
+      </div>
+      <p class="supervisor-alert-text">
+        Do not dispose into any hangar bin. This item must be held in the quarantine tray for inspection by a hangar supervisor.
+      </p>
+    </div>
+  {% elif record['status'] == 'SUPERVISOR_RESOLVED' %}
+    <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px;">
+      <div style="font-weight: 700; color: #16a34a; font-size: 0.95rem;">
+        ✓ Resolved by Supervisor
+      </div>
+      <div style="font-size: 0.8rem; color: #15803d; margin-top: 2px;">
+        Decision: <strong>{{ record['agreement'] or 'Confirmed' }}</strong> with AI &bull; Decided at: {{ record['decided_at'] }}
+      </div>
+    </div>
+  {% else %}
+    <div style="margin-bottom: 12px;">
+      <span class="confidence-badge badge-green">✓ AI Advisory Recommendation</span>
+    </div>
+  {% endif %}
+
+  <!-- Saved Resized Photo Display -->
+  <div class="result-image-box">
+    {% if record['image_filename'].startswith('[PURGED') %}
+      <div class="purged-photo-box">
+        <span class="purged-icon">🛡️</span>
+        <p><strong>Photo Purged by 30-Day Retention Policy</strong></p>
+        <span class="purged-subtext">Original photo securely removed from disk. Text audit trail preserved.</span>
+      </div>
+    {% else %}
+      <img src="{{ url_for('uploaded_file', filename=record['image_filename']) }}" alt="Uploaded waste item">
+    {% endif %}
+  </div>
+
+  <!-- Bin Colour Callout Banner -->
+  <div class="bin-callout bin-{{ record['bin_colour'] | lower }}">
+    <div class="bin-title">
+      {% if record['bin_colour'] | lower == 'red' %}🔴 RED BIN
+      {% elif record['bin_colour'] | lower == 'yellow' %}🟡 YELLOW BIN
+      {% elif record['bin_colour'] | lower == 'blue' %}🔵 BLUE BIN
+      {% elif record['bin_colour'] | lower == 'black' %}⚫ BLACK BIN
+      {% else %}⚠️ SUPERVISOR HOLD{% endif %}
+    </div>
+    <div class="bin-subtitle">
+      {% if record['bin_colour'] | lower == 'red' %}Flammable / Solvents
+      {% elif record['bin_colour'] | lower == 'yellow' %}Chemical & Hazardous Contaminants
+      {% elif record['bin_colour'] | lower == 'blue' %}General Recyclables
+      {% elif record['bin_colour'] | lower == 'black' %}General Non-Hazardous Waste
+      {% else %}Awaiting Physical Verification{% endif %}
+    </div>
+  </div>
+
+  <!-- Feature: Coloured Confidence Bar (Green >= 0.85, Amber 0.70-0.84, Red < 0.70) -->
+  <div class="confidence-box">
+    <div class="confidence-header">
+      <span>Confidence Score: <strong>{{ (record['confidence'] * 100) | round(1) }}%</strong></span>
+      {% if record['confidence'] >= 0.85 %}
+        <span class="confidence-badge badge-green">High (&ge; 85%)</span>
+      {% elif record['confidence'] >= 0.70 %}
+        <span class="confidence-badge badge-amber">Acceptable (70-84%)</span>
+      {% else %}
+        <span class="confidence-badge badge-red">Low (&lt; 70%)</span>
+      {% endif %}
+    </div>
+
+    <!-- Visual Progress Track -->
+    <div class="progress-track">
+      <div 
+        class="progress-fill {% if record['confidence'] >= 0.85 %}bar-green{% elif record['confidence'] >= 0.70 %}bar-amber{% else %}bar-red{% endif %}" 
+        style="width: {{ [record['confidence'] * 100, 5] | max | round(1) }}%;"
+      ></div>
+    </div>
+  </div>
+
+  <!-- Waste Stream Information -->
+  <div class="info-section">
+    <div class="info-title">Designated Waste Stream</div>
+    <div class="info-content">{{ record['waste_stream'] }}</div>
+  </div>
+
+  {% if record['reason'] %}
+  <div class="info-section">
+    <div class="info-title">Classification Reason</div>
+    <div class="info-content" style="font-weight: 500; font-size: 0.9rem; color: #334155;">
+      {{ record['reason'] }}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if record['safety_reminder'] %}
+  <div class="safety-box {% if record['status'] == 'REFER TO SUPERVISOR' %}safety-warning{% endif %}">
+    <strong>🛡️ Safety Reminder:</strong>
+    <p style="margin-top: 3px;">{{ record['safety_reminder'] }}</p>
+  </div>
+  {% endif %}
+
+  {% if record['description'] %}
+  <div class="info-section" style="margin-top: 14px;">
+    <div class="info-title">Technician Description</div>
+    <div class="info-content" style="font-size: 0.88rem; color: #64748b; font-style: italic;">
+      "{{ record['description'] }}"
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Requirement 5: "Wrong? Report it" Button for Confidently Classified Items -->
+  {% if record['status'] == 'ADVISED' %}
+    <form action="{{ url_for('report_item', record_id=record['id']) }}" method="POST" style="margin-top: 16px;">
+      <button type="submit" class="btn btn-warning" style="background-color: #ea580c; color: white;">
+        <span>⚠️ Wrong? Report it</span>
+      </button>
+    </form>
+  {% elif record['status'] == 'REFER TO SUPERVISOR' %}
+    <div style="margin-top: 16px;">
+      <a href="{{ url_for('review_screen') }}" class="btn btn-warning" style="background-color: #ea580c; color: white;">
+        <span>🔍 Open in Supervisor Review Queue</span>
+      </a>
+    </div>
+  {% endif %}
+
+  <!-- Actions -->
+  <div style="margin-top: 16px;">
+    <a href="{{ url_for('scan_screen') }}" class="btn btn-primary">
+      <span>📷 Scan Next Item</span>
+    </a>
+    <a href="{{ url_for('log_screen') }}" class="btn btn-secondary">
+      <span>📋 View Hangar Waste Log</span>
+    </a>
+  </div>
+</div>
+{% endblock %}

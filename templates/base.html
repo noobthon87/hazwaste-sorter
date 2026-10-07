@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{% block title %}HazWaste Sorter{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <!-- PWA & Mobile Web App Manifest -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Apple iOS Full-Screen Web App Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HazWaste Sorter">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-touch-icon.png') }}">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icon-192.png') }}">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+
+  <!-- Feature 6: Permanent Banner on Every Page -->
+  <div class="permanent-banner">
+    ⚠️ Advisory only – follow hangar waste procedure. Ask your supervisor if unsure.
+  </div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <h1>✈️ HazWaste Sorter</h1>
+    <p>Singapore Aircraft Hangar Training</p>
+  </header>
+
+  <!-- Flash Messages -->
+  <main class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Governance Feature 2: App Footer with link to 'About this AI' -->
+  <footer class="app-footer">
+    <p>HazWaste Sorter &bull; Singapore Aircraft Hangar Training Prototype</p>
+    <div class="footer-links">
+      <a href="{{ url_for('about_screen') }}" class="footer-link">ℹ️ About this AI &amp; Safety Governance</a>
+    </div>
+  </footer>
+
+  <!-- Feature 7: Bottom Navigation Bar: Scan | Review | Log -->
+  <nav class="bottom-nav">
+    <a href="{{ url_for('scan_screen') }}" class="nav-link {% if active_page == 'scan' %}active{% endif %}">
+      <span class="icon">📷</span>
+      <span>Scan</span>
+    </a>
+    <a href="{{ url_for('review_screen') }}" class="nav-link {% if active_page == 'review' %}active{% endif %}">
+      <span class="icon">🔍</span>
+      <span>Review</span>
+    </a>
+    <a href="{{ url_for('log_screen') }}" class="nav-link {% if active_page == 'log' %}active{% endif %}">
+      <span class="icon">📋</span>
+      <span>Log</span>
+    </a>
+  </nav>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register("{{ url_for('static', filename='sw.js') }}")
+          .catch((err) => console.log('SW registration error:', err));
+      });
+    }
+  </script>
+
+</body>
+</html>

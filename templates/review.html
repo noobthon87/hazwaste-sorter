@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Supervisor Review - HazWaste Sorter{% endblock %}
+
+{% block content %}
+
+{% if needs_pin %}
+  <!-- ============================================== -->
+  <!-- SUPERVISOR PIN AUTHENTICATION FORM             -->
+  <!-- ============================================== -->
+  <div class="card pin-card">
+    <div style="text-align: center; margin-bottom: 16px;">
+      <span style="font-size: 2.8rem; display: block; margin-bottom: 6px;">🔒</span>
+      <h2>Supervisor Access Required</h2>
+      <p class="subtext">Enter your 4-digit supervisor PIN to manage the waste review queue.</p>
+    </div>
+
+    <!-- NOTE: Simple 4-digit PIN form for demo-level security -->
+    <form action="{{ url_for('supervisor_login') }}" method="POST" class="pin-form">
+      <div class="form-group" style="text-align: center;">
+        <input 
+          type="password" 
+          id="pin-input" 
+          name="pin" 
+          maxlength="4" 
+          pattern="[0-9]{4}" 
+          inputmode="numeric" 
+          placeholder="••••" 
+          class="pin-input"
+          required 
+          autofocus
+        >
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+        <span>🔓 Unlock Review Queue</span>
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 16px; font-size: 0.78rem; color: #94a3b8;">
+      Demo Prototype Security &bull; Default PIN: <code>1234</code>
+    </div>
+  </div>
+
+{% else %}
+  <!-- ============================================== -->
+  <!-- AUTHENTICATED SUPERVISOR REVIEW QUEUE          -->
+  <!-- ============================================== -->
+  
+  <div class="card" style="padding-bottom: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <div>
+        <h2 style="margin-bottom: 2px;">Supervisor Review</h2>
+        <p style="font-size: 0.82rem; color: #64748b;">
+          {{ items | length }} item{% if items | length != 1 %}s{% endif %} awaiting decision
+        </p>
+      </div>
+
+      <!-- Lock / Sign Out button -->
+      <form action="{{ url_for('supervisor_logout') }}" method="POST" style="margin: 0;">
+        <button type="submit" class="btn btn-secondary" style="min-height: 36px; padding: 6px 12px; font-size: 0.78rem; width: auto;">
+          <span>🔒 Lock</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {% if items %}
+    {% for item in items %}
+      <div class="card review-item-card">
+        <!-- Review Item Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: #991b1b; background: #fee2e2; padding: 3px 8px; border-radius: 999px;">
+            ⚠️ REFER TO SUPERVISOR
+          </span>
+          <span style="font-size: 0.72rem; color: #94a3b8;">
+            Record #{{ item['id'] }} &bull; {{ item['timestamp'] }}
+          </span>
+        </div>
+
+        <!-- Photo Display -->
+        <div class="result-image-box">
+          {% if item['image_filename'].startswith('[PURGED') %}
+            <div class="purged-photo-box" style="padding: 16px 10px;">
+              <span class="purged-icon" style="font-size: 1.5rem;">🛡️</span>
+              <p style="font-size: 0.82rem;"><strong>Photo Purged (>30 Days Retention)</strong></p>
+              <span class="purged-subtext">Original photo deleted from disk. Text record preserved.</span>
+            </div>
+          {% else %}
+            <img 
+              src="{{ url_for('uploaded_file', filename=item['image_filename']) }}" 
+              alt="Waste photo"
+              style="max-height: 200px; width: 100%; object-fit: contain; background: #f8fafc;"
+            >
+          {% endif %}
+        </div>
+
+        <!-- Technician Description -->
+        {% if item['description'] %}
+          <div class="info-section">
+            <div class="info-title">Technician Description</div>
+            <div class="info-content" style="font-size: 0.88rem; color: #334155;">
+              "{{ item['description'] }}"
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- AI Suggestion & Confidence -->
+        <div class="info-section">
+          <div class="info-title">AI Suggestion</div>
+          <div class="info-content" style="font-weight: 700; color: #0f172a;">
+            {{ item['ai_suggestion'] or item['waste_stream'] or "Unclassified" }}
+          </div>
+        </div>
+
+        <!-- Confidence Meter -->
+        <div class="confidence-box" style="margin: 10px 0;">
+          <div class="confidence-header">
+            <span style="font-size: 0.8rem;">AI Confidence: <strong>{{ (item['confidence'] * 100) | round(1) }}%</strong></span>
+            {% if item['confidence'] >= 0.85 %}
+              <span class="confidence-badge badge-green">High</span>
+            {% elif item['confidence'] >= 0.70 %}
+              <span class="confidence-badge badge-amber">Moderate</span>
+            {% else %}
+              <span class="confidence-badge badge-red">Low (&lt; 70%)</span>
+            {% endif %}
+          </div>
+          <div class="progress-track" style="height: 8px;">
+            <div 
+              class="progress-fill {% if item['confidence'] >= 0.85 %}bar-green{% elif item['confidence'] >= 0.70 %}bar-amber{% else %}bar-red{% endif %}" 
+              style="width: {{ [item['confidence'] * 100, 5] | max | round(1) }}%;"
+            ></div>
+          </div>
+        </div>
+
+        {% if item['reason'] %}
+          <div class="info-section">
+            <div class="info-title">AI Stated Reason / Flag Note</div>
+            <div class="info-content" style="font-size: 0.85rem; font-weight: normal; color: #475569;">
+              {{ item['reason'] }}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Supervisor Decision Form -->
+        <form action="{{ url_for('confirm_review', record_id=item['id']) }}" method="POST" style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-color);">
+          <div class="form-group">
+            <label for="stream-{{ item['id'] }}" style="font-size: 0.85rem; font-weight: 700;">
+              Supervisor: Select Final Waste Stream
+            </label>
+            <select name="final_stream" id="stream-{{ item['id'] }}" class="stream-select" required>
+              <option value="" disabled {% if not item['ai_suggestion'] %}selected{% endif %}>-- Pick Correct Stream --</option>
+              {% for s in streams %}
+                <option value="{{ s['stream_name'] }}" {% if s['stream_name'] == item['ai_suggestion'] or s['stream_name'] == item['waste_stream'] %}selected{% endif %}>
+                  {{ s['stream_name'] }} ({{ s['bin_colour'] }} Bin)
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="background-color: #16a34a;">
+            <span>✓ Confirm Stream Decision</span>
+          </button>
+        </form>
+
+      </div>
+    {% endfor %}
+
+  {% else %}
+    <!-- Empty State -->
+    <div class="card" style="text-align: center; padding: 40px 16px;">
+      <span style="font-size: 3rem; display: block; margin-bottom: 10px;">✅</span>
+      <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 4px;">Queue Clear!</h3>
+      <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 20px;">
+        No items currently require supervisor review. All waste items are resolved.
+      </p>
+      <a href="{{ url_for('scan_screen') }}" class="btn btn-primary" style="display: inline-flex; width: auto; padding: 12px 24px;">
+        <span>Return to Scanner</span>
+      </a>
+    </div>
+  {% endif %}
+
+{% endif %}
+
+{% endblock %}
